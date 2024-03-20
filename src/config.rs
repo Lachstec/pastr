@@ -1,4 +1,64 @@
+#![allow(unused)]
+use secrecy::{ExposeSecret, Secret};
+use serde_aux::field_attributes::deserialize_number_from_string;
+use sqlx::postgres::{PgConnectOptions, PgSslMode};
 use std::convert::TryFrom;
+
+/// Contains general config for the application.
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct AppConfig {
+    database: DatabaseConfig,
+}
+
+/// Config for the database connection.
+#[derive(Debug, Clone, serde::Deserialize)]
+pub struct DatabaseConfig {
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    port: u16,
+    host: String,
+    username: String,
+    password: Secret<String>,
+    database: String,
+    use_tls: bool,
+}
+
+impl DatabaseConfig {
+    pub fn as_connect_options(&self) -> PgConnectOptions {
+        let ssl_mode = if self.use_tls {
+            PgSslMode::Require
+        } else {
+            PgSslMode::Prefer
+        };
+
+        PgConnectOptions::new()
+            .host(&self.host)
+            .username(&self.username)
+            .password(self.password.expose_secret())
+            .port(self.port)
+            .ssl_mode(ssl_mode)
+    }
+}
+
+/// Attempt to retrieve configuration from a config file.
+///
+/// Attempt to locate a config file in the location $working_dir/{environment}.yml. The filename gets detemined by the
+/// `APP ENV` environment variable. For valid options see [`Enviroment`]. Returns an error if the file can not
+/// be located or if `APP ENV` has an invalid value.
+pub fn get_config() -> Result<AppConfig, config::ConfigError> {
+    let cwd = std::env::current_dir().expect("failed to determine current working directory");
+    let env: Environment = std::env::var("APP_ENV")
+        .unwrap_or("dev".into())
+        .try_into()
+        .expect("failed to determine app environment");
+
+    let filename = format!("{}.yml", env.as_str());
+
+    let cfg = config::Config::builder()
+        .add_source(config::File::from(cwd.join(filename)))
+        .build()?;
+
+    cfg.try_deserialize::<AppConfig>()
+}
 
 /// Environment configuration specifying what config file should be used.
 #[derive(Debug, Copy, Clone, PartialEq)]
