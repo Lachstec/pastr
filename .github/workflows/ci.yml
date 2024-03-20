@@ -1,0 +1,43 @@
+name: CI
+
+env:
+  CARGO_TERM_COLOR: always
+  MSRV: '1.70'
+
+on:
+  push:
+    branches:
+      - "main"
+  pull_request: {}
+
+jobs:
+
+  # Check Project for Clippy Lints and ensure that it is properly formatted
+  check:
+    name: Check clippy lints and format
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@protoc
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          components: clippy, rustfmt
+      - uses: Swatinem/rust-cache@v2
+      - name: Check
+        run: cargo clippy --workspace --all-targets --all-features -- -D warnings
+      - name: Format
+        run: cargo fmt --all --check
+
+  # Run Unit tests for the project
+  test:
+    name: Run Tests
+
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: taiki-e/install-action@protoc
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - name: Tests
+        run: cargo test --workspace --all-features --all-targets
