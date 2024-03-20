@@ -1,4 +1,3 @@
-#![allow(unused)]
 use secrecy::{ExposeSecret, Secret};
 use serde_aux::field_attributes::deserialize_number_from_string;
 use sqlx::postgres::{PgConnectOptions, PgSslMode};
@@ -6,20 +5,28 @@ use std::convert::TryFrom;
 
 /// Contains general config for the application.
 #[derive(Debug, Clone, serde::Deserialize)]
+pub struct Config {
+    pub app: AppConfig,
+    pub database: DatabaseConfig,
+}
+
+#[derive(Debug, Clone, serde::Deserialize)]
 pub struct AppConfig {
-    database: DatabaseConfig,
+    #[serde(deserialize_with = "deserialize_number_from_string")]
+    pub port: u16,
+    pub pepper: Secret<String>,
 }
 
 /// Config for the database connection.
 #[derive(Debug, Clone, serde::Deserialize)]
 pub struct DatabaseConfig {
     #[serde(deserialize_with = "deserialize_number_from_string")]
-    port: u16,
-    host: String,
-    username: String,
-    password: Secret<String>,
-    database: String,
-    use_tls: bool,
+    pub port: u16,
+    pub host: String,
+    pub username: String,
+    pub password: Secret<String>,
+    pub database: String,
+    pub use_tls: bool,
 }
 
 impl DatabaseConfig {
@@ -44,20 +51,20 @@ impl DatabaseConfig {
 /// Attempt to locate a config file in the location $working_dir/{environment}.yml. The filename gets detemined by the
 /// `APP ENV` environment variable. For valid options see [`Enviroment`]. Returns an error if the file can not
 /// be located or if `APP ENV` has an invalid value.
-pub fn get_config() -> Result<AppConfig, config::ConfigError> {
+pub fn get_config() -> Result<Config, config::ConfigError> {
     let cwd = std::env::current_dir().expect("failed to determine current working directory");
     let env: Environment = std::env::var("APP_ENV")
         .unwrap_or("dev".into())
         .try_into()
         .expect("failed to determine app environment");
 
-    let filename = format!("{}.yml", env.as_str());
+    let filename = format!("{}.yaml", env.as_str());
 
     let cfg = config::Config::builder()
         .add_source(config::File::from(cwd.join(filename)))
         .build()?;
 
-    cfg.try_deserialize::<AppConfig>()
+    cfg.try_deserialize::<Config>()
 }
 
 /// Environment configuration specifying what config file should be used.
@@ -89,5 +96,32 @@ impl TryFrom<String> for Environment {
                 other
             )),
         }
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn config_from_file() {
+        /*
+        let expected = Config {
+            app: AppConfig {
+                port: 8080,
+                pepper: Secret::new(String::from("test_pepper_dont_use")),
+            },
+            database: DatabaseConfig {
+                port: 5432,
+                host: String::from("localhost"),
+                database: String::from("pastr"),
+                username: String::from("postgres"),
+                password: Secret::new(String::from("test12345")),
+                use_tls: false,
+            },
+        };
+        */
+
+        let _cfg = get_config().unwrap();
     }
 }

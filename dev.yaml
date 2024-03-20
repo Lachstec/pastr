@@ -1,0 +1,10 @@
+app:
+  port: 8080
+  pepper: "test_pepper_dont_use"
+database:
+  host: "localhost"
+  database: "pastr"
+  username: "postgres"
+  password: "test12345"
+  port: 5432
+  use_tls: false
