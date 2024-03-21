@@ -9,7 +9,7 @@ use std::net::TcpListener;
 
 /// Container for the Actix Application
 pub struct Application {
-    port: u16,
+    pub port: u16,
     actix_server: Server,
 }
 
@@ -28,6 +28,10 @@ impl Application {
             port,
             actix_server: server,
         })
+    }
+
+    pub async fn run(self) -> Result<(), std::io::Error> {
+        self.actix_server.await
     }
 }
 

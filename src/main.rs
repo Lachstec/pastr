@@ -1,7 +1,12 @@
 use pastr::config;
+use pastr::setup::Application;
 
-fn main() {
+#[tokio::main]
+async fn main() -> anyhow::Result<()> {
     let cfg = config::get_config().unwrap();
-    let db_opts = cfg.database.as_connect_options();
-    println!("Config: {:?}", db_opts)
+    let app = Application::with_config(cfg).await?;
+    println!("Running Application on 127.0.0.1:{}", app.port);
+    let app_task = tokio::spawn(app.run());
+    let _ = app_task.await?;
+    Ok(())
 }
