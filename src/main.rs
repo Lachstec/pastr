@@ -1,4 +1,4 @@
-mod config;
+use pastr::config;
 
 fn main() {
     let cfg = config::get_config().unwrap();

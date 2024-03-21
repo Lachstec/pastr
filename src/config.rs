@@ -102,26 +102,17 @@ impl TryFrom<String> for Environment {
 #[cfg(test)]
 mod tests {
     use super::*;
+    use std::env;
 
     #[test]
-    fn config_from_file() {
-        /*
-        let expected = Config {
-            app: AppConfig {
-                port: 8080,
-                pepper: Secret::new(String::from("test_pepper_dont_use")),
-            },
-            database: DatabaseConfig {
-                port: 5432,
-                host: String::from("localhost"),
-                database: String::from("pastr"),
-                username: String::from("postgres"),
-                password: Secret::new(String::from("test12345")),
-                use_tls: false,
-            },
-        };
-        */
+    fn config_from_file_when_prod() {
+        env::set_var("APP_ENV", "prod");
+        let _cfg = get_config().expect("error reading prod config file");
+    }
 
-        let _cfg = get_config().unwrap();
+    #[test]
+    fn config_from_file_when_dev() {
+        env::set_var("APP_ENV", "dev");
+        let _cfg = get_config().expect("error reading dev config file");
     }
 }
