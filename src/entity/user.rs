@@ -16,6 +16,8 @@ pub struct User {
     username: String,
     /// PHC string. Generated via Argon2
     password_hash: String,
+    /// Whether the user has verified his email address
+    enabled: bool,
 }
 
 impl User {
@@ -32,17 +34,23 @@ impl User {
         .await??;
 
         let mut tx = pool.begin().await?;
+        let id = Uuid::new_v4();
 
         sqlx::query(
             "INSERT INTO pastr.users (id, username, mail, password_hash) 
             VALUES ($1, $2, $3, $4);",
         )
-        .bind(Uuid::new_v4())
+        .bind(id)
         .bind(username)
         .bind(mail)
         .bind(hash)
         .execute(&mut *tx)
         .await?;
+
+        sqlx::query("INSERT INTO pastr.users_confirmations (user_id) VALUES ($1);")
+            .bind(id)
+            .execute(&mut *tx)
+            .await?;
 
         tx.commit().await?;
         Ok(())
