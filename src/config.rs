@@ -15,6 +15,7 @@ pub struct AppConfig {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
     pub pepper: Secret<String>,
+    pub sendgrid_key: Secret<String>,
 }
 
 /// Config for the database connection.
