@@ -8,6 +8,7 @@ edition = "2021"
 [dependencies]
 actix-web = "4.5.1"
 anyhow = "1.0.81"
+argon2 = { version = "0.5.3", features = ["std"] }
 config = { version = "0.14.0", default-features = false, features = ["yaml"] }
 secrecy = { version = "0.8.0", features = ["serde"] }
 serde = { version = "1.0.197", features = ["derive"] }
@@ -20,4 +21,6 @@ sqlx = { version = "0.7", default-features = false, features = [
     "chrono",
     "migrate",
 ] }
+thiserror = "1.0.58"
 tokio = { version = "1.36.0", features = ["rt-multi-thread", "macros"] }
+uuid = { version = "1.8.0", features = ["v4"] }
