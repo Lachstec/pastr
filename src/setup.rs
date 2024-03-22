@@ -3,7 +3,7 @@ use crate::routes::hello_world::home;
 use actix_web::web::Data;
 use actix_web::{dev::Server, HttpServer};
 use actix_web::{web, App};
-use secrecy::Secret;
+use secrecy::{ExposeSecret, Secret};
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::net::TcpListener;
 
@@ -54,7 +54,7 @@ async fn run(
     pepper: Secret<String>,
 ) -> Result<Server, anyhow::Error> {
     let db_pool = Data::new(db_pool);
-    let pepper = Data::new(pepper);
+    let pepper = Data::new(pepper.expose_secret().as_bytes().to_vec());
     let server = HttpServer::new(move || {
         App::new()
             .route("/", web::get().to(home))

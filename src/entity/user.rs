@@ -22,11 +22,14 @@ impl User {
     pub async fn create(
         mail: &str,
         username: &str,
-        password: &str,
+        password: String,
         pool: &PgPool,
-        pepper: &[u8],
+        pepper: Vec<u8>,
     ) -> Result<(), anyhow::Error> {
-        let hash = hash_password(password, pepper)?;
+        let hash = actix_web::rt::task::spawn_blocking(move || {
+            hash_password(password.as_str(), pepper.as_slice())
+        })
+        .await??;
 
         let mut tx = pool.begin().await?;
 
