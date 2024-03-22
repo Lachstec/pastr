@@ -21,6 +21,16 @@ pub struct User {
 }
 
 impl User {
+    /// Create the user in the database with the specified values.
+    ///
+    /// Used when a user trys to register for the service. A new row will be created
+    /// in the DB via a transaction. Returns an error when communication with the db fails.
+    ///
+    /// * `mail`: e-mail address of the user. gets validated at the database
+    /// * `username`: username for this user. must be unique
+    /// * `password`: password for this user. gets hashed before being stored
+    /// * `pool`: pool to use for storage
+    /// * `pepper`: pepper to use for hashing
     pub async fn create(
         mail: &str,
         username: &str,

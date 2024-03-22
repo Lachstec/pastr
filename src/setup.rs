@@ -21,9 +21,10 @@ impl Application {
     pub async fn with_config(config: Config) -> Result<Self, anyhow::Error> {
         let db_pool = get_database_pool(config.database);
         let address = format!("127.0.0.1:{}", config.app.port);
+        let sengrid_key = config.app.sendgrid_key;
         let socket = TcpListener::bind(address)?;
         let port = socket.local_addr()?.port();
-        let server = run(socket, db_pool, config.app.pepper).await?;
+        let server = run(socket, db_pool, config.app.pepper, sengrid_key).await?;
         Ok(Self {
             port,
             actix_server: server,
@@ -52,6 +53,7 @@ async fn run(
     socket: TcpListener,
     db_pool: PgPool,
     pepper: Secret<String>,
+    sendgrid_key: Secret<String>,
 ) -> Result<Server, anyhow::Error> {
     let db_pool = Data::new(db_pool);
     let pepper = Data::new(pepper.expose_secret().as_bytes().to_vec());
@@ -60,6 +62,7 @@ async fn run(
             .route("/", web::get().to(home))
             .app_data(db_pool.clone())
             .app_data(pepper.clone())
+            .app_data(sendgrid_key.expose_secret().clone())
     })
     .listen(socket)?
     .run();
