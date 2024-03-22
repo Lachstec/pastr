@@ -14,6 +14,7 @@ pub struct Config {
 pub struct AppConfig {
     #[serde(deserialize_with = "deserialize_number_from_string")]
     pub port: u16,
+    pub base_url: String,
     pub pepper: Secret<String>,
     pub sendgrid_key: Secret<String>,
 }
