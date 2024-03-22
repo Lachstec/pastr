@@ -44,6 +44,7 @@ impl DatabaseConfig {
             .username(&self.username)
             .password(self.password.expose_secret())
             .port(self.port)
+            .database(&self.database)
             .ssl_mode(ssl_mode)
     }
 }
