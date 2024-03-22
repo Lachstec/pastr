@@ -2,6 +2,7 @@
 app:
   port: 8080
   pepper: "test_pepper_dont_use"
+  base_url: "test_url"
   sendgrid_key: "your_sendgrid_api_key"
 database:
   host: "localhost"
