@@ -1,9 +1,10 @@
 use crate::config::{Config, DatabaseConfig};
 use crate::routes::hello_world::home;
+use crate::routes::user::register;
 use actix_web::web::Data;
 use actix_web::{dev::Server, HttpServer};
 use actix_web::{web, App};
-use secrecy::{ExposeSecret, Secret};
+use secrecy::Secret;
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::net::TcpListener;
 
@@ -42,6 +43,12 @@ fn get_database_pool(config: DatabaseConfig) -> PgPool {
     PgPoolOptions::new().connect_lazy_with(config.as_connect_options())
 }
 
+pub struct AppBaseUrl(pub String);
+
+pub struct SendGridApiKey(pub Secret<String>);
+
+pub struct Pepper(pub Secret<String>);
+
 /// Construct the actix server instance based on the passed parameters.
 ///
 /// The actix server gets built here, supplying every information necessary (routes, app data, etc.).
@@ -58,14 +65,17 @@ async fn run(
     base_url: String,
 ) -> Result<Server, anyhow::Error> {
     let db_pool = Data::new(db_pool);
-    let pepper = Data::new(pepper.expose_secret().as_bytes().to_vec());
+    let pepper = Data::new(Pepper(pepper));
+    let sendgrid = Data::new(SendGridApiKey(sendgrid_key));
+    let base = Data::new(AppBaseUrl(base_url));
     let server = HttpServer::new(move || {
         App::new()
             .route("/", web::get().to(home))
+            .route("/register", web::post().to(register))
             .app_data(db_pool.clone())
             .app_data(pepper.clone())
-            .app_data(sendgrid_key.expose_secret().clone())
-            .app_data(base_url.clone())
+            .app_data(sendgrid.clone())
+            .app_data(base.clone())
     })
     .listen(socket)?
     .run();

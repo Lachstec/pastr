@@ -4,12 +4,12 @@ use uuid::Uuid;
 pub async fn send_registration_mail(
     user_id: &Uuid,
     mail: &String,
-    base_url: String,
-    api_key: String,
+    base_url: &String,
+    api_key: &String,
 ) -> Result<(), anyhow::Error> {
-    let p = Personalization::new(Email::new("pastr@1ux.dev"));
+    let p = Personalization::new(Email::new(mail));
 
-    let msg = Message::new(Email::new(mail))
+    let msg = Message::new(Email::new("pastr@1ux.dev"))
         .set_subject("Pastr Registration")
         .add_content(
             Content::new()
@@ -25,7 +25,7 @@ pub async fn send_registration_mail(
         )
         .add_personalization(p);
 
-    let sender = Sender::new(api_key);
+    let sender = Sender::new(api_key.to_owned());
     let response = sender.send(&msg).await?;
     if response.status() != http::StatusCode::ACCEPTED {
         Err(anyhow::anyhow!("error sending mail to user"))

@@ -37,7 +37,7 @@ impl User {
         password: String,
         pool: &PgPool,
         pepper: Vec<u8>,
-    ) -> Result<(), anyhow::Error> {
+    ) -> Result<Uuid, anyhow::Error> {
         let hash = actix_web::rt::task::spawn_blocking(move || {
             hash_password(password.as_str(), pepper.as_slice())
         })
@@ -47,13 +47,14 @@ impl User {
         let id = Uuid::new_v4();
 
         sqlx::query(
-            "INSERT INTO pastr.users (id, username, mail, password_hash) 
-            VALUES ($1, $2, $3, $4);",
+            "INSERT INTO pastr.users (id, username, mail, password_hash, enabled) 
+            VALUES ($1, $2, $3, $4, $5);",
         )
         .bind(id)
         .bind(username)
         .bind(mail)
         .bind(hash)
+        .bind(false)
         .execute(&mut *tx)
         .await?;
 
@@ -63,6 +64,6 @@ impl User {
             .await?;
 
         tx.commit().await?;
-        Ok(())
+        Ok(id)
     }
 }
