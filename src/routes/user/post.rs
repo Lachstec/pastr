@@ -23,6 +23,7 @@ pub enum RegistrationError {
     InvalidDataError(#[source] anyhow::Error),
 }
 
+// TODO: Better Errors / Responses
 pub async fn register(
     form: web::Form<FormData>,
     pool: web::Data<PgPool>,

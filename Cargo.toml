@@ -9,6 +9,7 @@ edition = "2021"
 actix-web = "4.5.1"
 anyhow = "1.0.81"
 argon2 = { version = "0.5.3", features = ["std"] }
+askama = "0.12.1"
 config = { version = "0.14.0", default-features = false, features = ["yaml"] }
 http = "1.1.0"
 secrecy = { version = "0.8.0", features = ["serde"] }
