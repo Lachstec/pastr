@@ -1,6 +1,6 @@
 #![allow(unused)]
 use crate::auth::hash_password;
-use sqlx::PgPool;
+use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
 /// User account that is able to login to the application.
@@ -65,5 +65,59 @@ impl User {
 
         tx.commit().await?;
         Ok(id)
+    }
+
+    /// Activate a given user, allowing him to log in to the application.
+    ///
+    /// Updates the user with the given `id` to be enabled. Requires that a row with the same id
+    /// exists in `users_confirmations`. Function returns an error if there is no signup request present.
+    ///
+    /// * `id` - UUID of the user to activate
+    /// * `pool` - Connection pool to use for the queries
+    pub async fn activate(id: &Uuid, pool: &PgPool) -> Result<(), anyhow::Error> {
+        // check if there is a valid request for the given user
+        let signup_exists = sqlx::query(
+            "SELECT EXISTS(
+                SELECT * FROM pastr.users_confirmations
+                WHERE user_id = $1
+            );",
+        )
+        .bind(id)
+        .fetch_one(pool)
+        .await?
+        .try_get::<bool, &str>("exists")?;
+
+        // enable the user if there was a valid request and delete it.
+        if signup_exists {
+            let mut tx = pool.begin().await?;
+            sqlx::query(
+                "
+                UPDATE pastr.users
+                SET enabled = true
+                WHERE id = $1;
+                ",
+            )
+            .bind(id)
+            .execute(&mut *tx)
+            .await?;
+
+            sqlx::query(
+                "
+                DELETE FROM pastr.users_confirmations
+                WHERE user_id = $1
+                ",
+            )
+            .bind(id)
+            .execute(&mut *tx)
+            .await?;
+
+            tx.commit().await?;
+            Ok(())
+        } else {
+            // return an error if there was no request
+            Err(anyhow::anyhow!(
+                "no signup request exists for given user id"
+            ))
+        }
     }
 }

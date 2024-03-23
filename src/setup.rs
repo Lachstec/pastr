@@ -1,6 +1,6 @@
 use crate::config::{Config, DatabaseConfig};
 use crate::routes::hello_world::home;
-use crate::routes::user::register;
+use crate::routes::user::{activate_user, register};
 use actix_web::web::Data;
 use actix_web::{dev::Server, HttpServer};
 use actix_web::{web, App};
@@ -72,6 +72,7 @@ async fn run(
         App::new()
             .route("/", web::get().to(home))
             .route("/register", web::post().to(register))
+            .service(activate_user)
             .app_data(db_pool.clone())
             .app_data(pepper.clone())
             .app_data(sendgrid.clone())
