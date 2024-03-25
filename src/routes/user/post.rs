@@ -23,7 +23,7 @@ pub enum RegistrationError {
     InvalidDataError(#[source] anyhow::Error),
 }
 
-// TODO: Better Errors / Responses
+#[tracing::instrument(name = "Registration Request", skip(pool, form, sendgrid_key, pepper))]
 pub async fn register(
     form: web::Form<FormData>,
     pool: web::Data<PgPool>,

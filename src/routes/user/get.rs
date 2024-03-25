@@ -6,6 +6,7 @@ use actix_web::{
 use sqlx::PgPool;
 use uuid::Uuid;
 
+#[tracing::instrument(name = "Account Activation Request", skip(pool))]
 #[get("/register/activate/{id}")]
 pub async fn activate_user(
     user_id: web::Path<Uuid>,

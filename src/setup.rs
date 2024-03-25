@@ -45,6 +45,7 @@ fn get_database_pool(config: DatabaseConfig) -> PgPool {
     PgPoolOptions::new().connect_lazy_with(config.as_connect_options())
 }
 
+#[derive(Debug)]
 pub struct AppBaseUrl(pub String);
 
 pub struct SendGridApiKey(pub Secret<String>);
