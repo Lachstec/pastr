@@ -1,5 +1,6 @@
 use actix_web::HttpResponse;
 use actix_web::{error::InternalError, web};
+use actix_web_lab::respond::Html;
 use secrecy::ExposeSecret;
 use sqlx::PgPool;
 use thiserror::Error;

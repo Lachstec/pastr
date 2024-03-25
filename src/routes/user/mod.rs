@@ -1,5 +1,5 @@
-mod get;
-mod post;
+mod activate;
+mod register;
 
-pub use get::activate_user;
-pub use post::register;
+pub use activate::activate_user;
+pub use register::register;
