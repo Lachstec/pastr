@@ -1,5 +1,6 @@
 use crate::config::{Config, DatabaseConfig};
-use crate::routes::hello_world::home;
+use crate::log;
+use crate::routes::healthcheck::health_check;
 use crate::routes::user::{activate_user, register};
 use actix_web::web::Data;
 use actix_web::{dev::Server, HttpServer};
@@ -7,6 +8,7 @@ use actix_web::{web, App};
 use secrecy::Secret;
 use sqlx::{postgres::PgPoolOptions, PgPool};
 use std::net::TcpListener;
+use tracing_actix_web::TracingLogger;
 
 /// Container for the Actix Application
 pub struct Application {
@@ -64,13 +66,16 @@ async fn run(
     sendgrid_key: Secret<String>,
     base_url: String,
 ) -> Result<Server, anyhow::Error> {
+    log::configure_subscriber();
+
     let db_pool = Data::new(db_pool);
     let pepper = Data::new(Pepper(pepper));
     let sendgrid = Data::new(SendGridApiKey(sendgrid_key));
     let base = Data::new(AppBaseUrl(base_url));
     let server = HttpServer::new(move || {
         App::new()
-            .route("/", web::get().to(home))
+            .wrap(TracingLogger::default())
+            .route("/healthcheck", web::get().to(health_check))
             .route("/register", web::post().to(register))
             .service(activate_user)
             .app_data(db_pool.clone())
