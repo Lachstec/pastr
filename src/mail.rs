@@ -10,8 +10,15 @@ struct SignUpTemplate<'a> {
     base_url: &'a str,
 }
 
-// TODO: Docs
-// TODO: Mail Text
+/// Send a registration email to the specified mail address.
+///
+/// Uses the [Sendgrid](https://sendgrid.com/) API to send a confirmation e-mail in order to register.
+/// Requires that a valid sendgrid api key is supplied in the config file.
+///
+/// * `user_id` - uuid of the user that should get activated with this mail
+/// * `mail` - mail destination
+/// * `base_url` - base url of the service, used to construct correct links in the mail
+/// * `api_key` - sendgrid api key
 pub async fn send_registration_mail(
     user_id: &Uuid,
     mail: &String,
@@ -19,10 +26,7 @@ pub async fn send_registration_mail(
     api_key: &String,
 ) -> Result<(), anyhow::Error> {
     let p = Personalization::new(Email::new(mail));
-    let template = SignUpTemplate {
-        user_id,
-        base_url: &base_url,
-    };
+    let template = SignUpTemplate { user_id, base_url };
 
     let mail_html = template.render()?;
 
