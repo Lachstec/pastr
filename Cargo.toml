@@ -12,7 +12,9 @@ path = "src/main.rs"
 name = "pastr"
 
 [dependencies]
+actix-files = "0.6.5"
 actix-web = "4.5.1"
+actix-web-lab = "0.20.2"
 anyhow = "1.0.81"
 argon2 = { version = "0.5.3", features = ["std"] }
 askama = "0.12.1"

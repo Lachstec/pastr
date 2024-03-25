@@ -1,7 +1,9 @@
 use crate::config::{Config, DatabaseConfig};
 use crate::log;
 use crate::routes::healthcheck::health_check;
+use crate::routes::index::index_page;
 use crate::routes::user::{activate_user, register};
+use actix_files::Files;
 use actix_web::web::Data;
 use actix_web::{dev::Server, HttpServer};
 use actix_web::{web, App};
@@ -76,9 +78,11 @@ async fn run(
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
+            .route("/", web::get().to(index_page))
             .route("/healthcheck", web::get().to(health_check))
             .route("/register", web::post().to(register))
             .service(activate_user)
+            .service(Files::new("/static", "./static").prefer_utf8(true))
             .app_data(db_pool.clone())
             .app_data(pepper.clone())
             .app_data(sendgrid.clone())
