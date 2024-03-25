@@ -1,5 +1,9 @@
 #![allow(unused)]
-use crate::auth::hash_password;
+use crate::{
+    auth::{hash_password, verify_password_hash},
+    routes::user,
+};
+use anyhow::Context;
 use sqlx::{PgPool, Row};
 use uuid::Uuid;
 
@@ -119,5 +123,25 @@ impl User {
                 "no signup request exists for given user id"
             ))
         }
+    }
+
+    pub async fn login(
+        username: &str,
+        password: &str,
+        pool: &PgPool,
+        pepper: Vec<u8>,
+    ) -> Result<(), anyhow::Error> {
+        let password_hash =
+            sqlx::query("SELECT password_hash FROM pastr.users WHERE username = $1;")
+                .bind(username)
+                .fetch_one(pool)
+                .await
+                .context("failed to retrieve password hash for user")?
+                .try_get::<String, &str>("password_hash")?;
+
+        Ok(
+            verify_password_hash(password, password_hash.as_str(), pepper.as_slice())
+                .context("passwords do not match")?,
+        )
     }
 }
