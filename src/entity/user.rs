@@ -139,9 +139,7 @@ impl User {
                 .context("failed to retrieve password hash for user")?
                 .try_get::<String, &str>("password_hash")?;
 
-        Ok(
-            verify_password_hash(password, password_hash.as_str(), pepper.as_slice())
-                .context("passwords do not match")?,
-        )
+        verify_password_hash(password, password_hash.as_str(), pepper.as_slice())
+            .context("passwords do not match")
     }
 }
