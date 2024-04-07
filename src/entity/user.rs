@@ -143,3 +143,22 @@ impl User {
             .context("passwords do not match")
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[sqlx::test]
+    async fn create(pool: PgPool) {
+        let result = User::create(
+            "test@mail.com",
+            "testuser",
+            String::from("test1234!"),
+            &pool,
+            "testpepper".as_bytes().to_vec(),
+        )
+        .await;
+
+        assert!(result.is_ok())
+    }
+}
