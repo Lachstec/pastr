@@ -2,7 +2,7 @@ use crate::config::{Config, DatabaseConfig};
 use crate::log;
 use crate::routes::healthcheck::health_check;
 use crate::routes::index::index_page;
-use crate::routes::user::{activate_user, register};
+use crate::routes::user::{activate_user, register_page};
 use actix_files::Files;
 use actix_web::web::Data;
 use actix_web::{dev::Server, HttpServer};
@@ -80,7 +80,7 @@ async fn run(
             .wrap(TracingLogger::default())
             .route("/", web::get().to(index_page))
             .route("/healthcheck", web::get().to(health_check))
-            .route("/register", web::post().to(register))
+            .route("/register", web::get().to(register_page))
             .service(activate_user)
             .service(Files::new("/static", "./static").prefer_utf8(true))
             .app_data(db_pool.clone())
