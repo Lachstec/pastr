@@ -144,12 +144,10 @@ impl User {
     }
 
     pub async fn get_by_username(username: &str, pool: &PgPool) -> Result<User, anyhow::Error> {
-        Ok(
-            sqlx::query_as("SELECT * FROM pastr.users WHERE username = $1;")
-                .bind(username)
-                .fetch_one(pool)
-                .await
-                .context("user not found")?,
-        )
+        sqlx::query_as("SELECT * FROM pastr.users WHERE username = $1;")
+            .bind(username)
+            .fetch_one(pool)
+            .await
+            .context("user not found")
     }
 }
