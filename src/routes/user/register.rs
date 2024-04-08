@@ -1,5 +1,7 @@
 use actix_web::HttpResponse;
 use actix_web::{error::InternalError, web};
+use actix_web_lab::respond::Html;
+use askama::Template;
 use secrecy::ExposeSecret;
 use sqlx::PgPool;
 use thiserror::Error;
@@ -7,6 +9,10 @@ use thiserror::Error;
 use crate::entity::User;
 use crate::mail;
 use crate::setup::{AppBaseUrl, Pepper, SendGridApiKey};
+
+#[derive(Template)]
+#[template(path = "register.html")]
+struct RegistrationPage;
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
@@ -71,4 +77,9 @@ pub async fn register(
     })?;
 
     Ok(HttpResponse::Created().finish())
+}
+
+pub async fn register_page() -> Html {
+    let html = RegistrationPage.render().unwrap();
+    Html(html)
 }
