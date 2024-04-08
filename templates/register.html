@@ -1,7 +1,40 @@
 {% extends "base.html" %}
 
 {% block content %}
-<form>
-
+<form action="/api/register" onsubmit="submit_registration" class="border rounded mt-5" id="registration-form">
+  <div class="p-3">
+    <h2>Register</h2>
+    <div class="mb-1">
+      <label for="email" class="form-label">Email:</label>
+      <input type="email" class="form-control" id="email" placeholder="Your E-Mail" required>
+    </div>
+    <div class="mb-1">
+      <label for="username" class="form-label">Username:</label>
+      <input type="text" class="form-control" id="username" placeholder="Your Username" required>
+    </div>
+    <div class="mb-1">
+      <label for="password" class="form-label">Password:</label>
+      <input type="password" class="form-control" id="password" placeholder="Your Password" required
+        onchange="passwordOnChange()">
+      <div class="invalid-feedback" id="validation-username">
+      </div>
+    </div>
+    <div class="mb-1">
+      <label for="password_repeat" class="form-label">Password:</label>
+      <input type="password" class="form-control" id="password-repeat" placeholder="Retype Password" required
+        onchange="passwordOnChange()">
+      <div class="invalid-feedback" id="validation-username">
+      </div>
+    </div>
+  </div>
+  <div class="pb-3 ps-3">
+    <button type="submit" class="btn btn-primary">
+      Submit
+    </button>
+  </div>
 </form>
+
+<script>
+  // TODO: Validate Form with JavaScript.
+</script>
 {% endblock %}
