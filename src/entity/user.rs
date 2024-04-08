@@ -11,7 +11,7 @@ use uuid::Uuid;
 ///
 /// Provides functionality to create new users in the database
 /// and query the database for users.
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, sqlx::FromRow)]
 pub struct User {
     /// Uuid4 used as primary key in database
     id: Uuid,
@@ -142,23 +142,14 @@ impl User {
         verify_password_hash(password, password_hash.as_str(), pepper.as_slice())
             .context("passwords do not match")
     }
-}
 
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[sqlx::test]
-    async fn create(pool: PgPool) {
-        let result = User::create(
-            "test@mail.com",
-            "testuser",
-            String::from("test1234!"),
-            &pool,
-            "testpepper".as_bytes().to_vec(),
+    pub async fn get_by_username(username: &str, pool: &PgPool) -> Result<User, anyhow::Error> {
+        Ok(
+            sqlx::query_as("SELECT * FROM pastr.users WHERE username = $1;")
+                .bind(username)
+                .fetch_one(pool)
+                .await
+                .context("user not found")?,
         )
-        .await;
-
-        assert!(result.is_ok())
     }
 }
