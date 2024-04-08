@@ -12,7 +12,9 @@ use crate::setup::{AppBaseUrl, Pepper, SendGridApiKey};
 
 #[derive(Template)]
 #[template(path = "register.html")]
-struct RegistrationPage;
+struct RegistrationPage {
+    pub base_url: String,
+}
 
 #[derive(serde::Deserialize)]
 pub struct FormData {
@@ -79,7 +81,10 @@ pub async fn register(
     Ok(HttpResponse::Created().finish())
 }
 
-pub async fn register_page() -> Html {
-    let html = RegistrationPage.render().unwrap();
+pub async fn register_page(base_url: web::Data<AppBaseUrl>) -> Html {
+    let page = RegistrationPage {
+        base_url: base_url.0.clone(),
+    };
+    let html = page.render().unwrap();
     Html(html)
 }

@@ -1,12 +1,17 @@
 {% extends "base.html" %}
 
 {% block content %}
-<form action="/api/register" onsubmit="submit_registration" class="border rounded mt-5" id="registration-form">
+<form action="/api/register" onsubmit="submit_registration" class="border rounded mt-5" id="registration-form"
+  onchange="check_email()">
   <div class="p-3">
     <h2>Register</h2>
+    <div id="alert-placeholder">
+    </div>
     <div class="mb-1">
       <label for="email" class="form-label">Email:</label>
       <input type="email" class="form-control" id="email" placeholder="Your E-Mail" required>
+      <div class="invalid-feedback" id="validation-email">
+      </div>
     </div>
     <div class="mb-1">
       <label for="username" class="form-label">Username:</label>
@@ -15,15 +20,15 @@
     <div class="mb-1">
       <label for="password" class="form-label">Password:</label>
       <input type="password" class="form-control" id="password" placeholder="Your Password" required
-        onchange="passwordOnChange()">
-      <div class="invalid-feedback" id="validation-username">
+        onchange="check_password()">
+      <div class="invalid-feedback" id="validation-password">
       </div>
     </div>
     <div class="mb-1">
       <label for="password_repeat" class="form-label">Password:</label>
       <input type="password" class="form-control" id="password-repeat" placeholder="Retype Password" required
-        onchange="passwordOnChange()">
-      <div class="invalid-feedback" id="validation-username">
+        onchange="check_password()">
+      <div class="invalid-feedback" id="validation-password">
       </div>
     </div>
   </div>
@@ -36,5 +41,65 @@
 
 <script>
   // TODO: Validate Form with JavaScript.
+  const check_password = () => {
+    const password = document.querySelector('#password');
+    const password_confirmation = document.querySelector('#password-repeat');
+    const feedback = document.querySelectorAll('#validation-password');
+
+    if (password.value !== password_confirmation.value && !password.classList.contains('is-invalid')) {
+      password.classList.add('is-invalid');
+      password_confirmation.classList.add('is-invalid');
+
+      feedback.forEach((elem) => {
+        elem.textContent = 'Passwords do not match.';
+      })
+    } else if (password.value === password_confirmation.value) {
+      password.classList.remove('is-invalid');
+      password_confirmation.classList.remove('is-invalid');
+
+      password.classList.add('is-valid');
+      password_confirmation.classList.add('is-valid');
+      feedback.forEach((elem) => elem.textContent = '');
+    }
+  };
+
+  const check_email = () => {
+    const email = document.querySelector('#email');
+    const feedback = document.querySelector('#validation-email');
+    const mail_regex = /^(([^<>()[\]\.,;:\s@\"]+(\.[^<>()[\]\.,;:\s@\"]+)*)|(\".+\"))@(([^<>()[\]\.,;:\s@\"]+\.)+[^<>()[\]\.,;:\s@\"]{2,})$/i;
+    if (email.value.match(mail_regex)) {
+      email.classList.remove('is-invalid');
+      email.classList.add('is-valid');
+      feedback.textContent = '';
+    } else {
+      email.classList.remove('is-valid');
+      email.classList.add('is-invalid');
+      feedback.textContent = 'Invalid Email Address.';
+    }
+  };
+
+  const submit_form = async () => {
+    const form = document.querySelector('#registration-form');
+    const formdata = new FormData(form);
+    const alert = document.querySelector('#alert-placeholder');
+    try {
+      // TODO: Check if username is already taken
+      const response = await fetch({{ base_url }}, {
+      method: "POST",
+        body: formdata
+    });
+    const success_alert = document.createElement('div');
+    success_alert.innerHTML = [
+      `<div class="alert alert-success alert-dismissible" role="alert">`,
+      `   <div>User registered. Check your Mails for activation.</div>`,
+      '   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>',
+      '</div>'
+    ].join('');
+    alert.append(success_alert);
+  } catch (e) {
+    //TODO:
+    console.log(e);
+  }
+  }
 </script>
 {% endblock %}
