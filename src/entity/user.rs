@@ -50,7 +50,7 @@ impl User {
         pepper: Vec<u8>,
     ) -> Result<Uuid, anyhow::Error> {
         // check if user already exists
-        let user = sqlx::query("SELECT EXISTS(SELECT 1 FROM pastr.users WHERE username = $1;);")
+        let user = sqlx::query("SELECT EXISTS(SELECT 1 FROM pastr.users WHERE username = $1);")
             .bind(username)
             .fetch_one(pool)
             .await?

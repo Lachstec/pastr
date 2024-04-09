@@ -21,6 +21,7 @@ impl<'a> ApiErrorMessage<'a> {
 pub struct ApiResponse<'a> {
     success: bool,
     message: &'a str,
+    #[serde(skip_serializing_if = "Option::is_none")]
     errors: Option<Vec<ApiErrorMessage<'a>>>,
 }
 
