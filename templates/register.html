@@ -8,31 +8,32 @@
     </div>
     <div class="mb-1">
       <label for="email" class="form-label">Email:</label>
-      <input type="email" class="form-control" id="email" placeholder="Your E-Mail" required onkeyup="check_email()">
+      <input type="email" class="form-control" id="email" name="mail" placeholder="Your E-Mail" required
+        onkeyup="validateForm()">
       <div class="invalid-feedback" id="validation-email">
       </div>
     </div>
     <div class="mb-1">
       <label for="username" class="form-label">Username:</label>
-      <input type="text" class="form-control" id="username" placeholder="Your Username" required>
+      <input type="text" class="form-control" id="username" name="username" placeholder="Your Username" required>
     </div>
     <div class="mb-1">
       <label for="password" class="form-label">Password:</label>
-      <input type="password" class="form-control" id="password" placeholder="Your Password" required
-        onkeyup="check_password()">
+      <input type="password" class="form-control" id="password" name="password" placeholder="Your Password" required
+        onkeyup="validateForm()">
       <div class="invalid-feedback" id="validation-password">
       </div>
     </div>
     <div class="mb-1">
       <label for="password_repeat" class="form-label">Password:</label>
       <input type="password" class="form-control" id="password-repeat" placeholder="Retype Password" required
-        onkeyup="check_password()">
+        onkeyup="validateForm()">
       <div class="invalid-feedback" id="validation-password">
       </div>
     </div>
   </div>
   <div class="pb-3 ps-3">
-    <button type="submit" class="btn btn-primary">
+    <button type="submit" class="btn btn-primary" disabled id="submit-button">
       Submit
     </button>
   </div>
@@ -45,20 +46,24 @@
     const password_confirmation = document.querySelector('#password-repeat');
     const feedback = document.querySelectorAll('#validation-password');
 
-    if (password.value !== password_confirmation.value && !password.classList.contains('is-invalid')) {
+    const isEmpty = str => !str.trim().length;
+
+    if (password.value !== password_confirmation.value || isEmpty(password.value) || isEmpty(password_confirmation.value)) {
       password.classList.add('is-invalid');
       password_confirmation.classList.add('is-invalid');
 
       feedback.forEach((elem) => {
         elem.textContent = 'Passwords do not match.';
       })
-    } else if (password.value === password_confirmation.value) {
+      return false;
+    } else {
       password.classList.remove('is-invalid');
       password_confirmation.classList.remove('is-invalid');
 
       password.classList.add('is-valid');
       password_confirmation.classList.add('is-valid');
       feedback.forEach((elem) => elem.textContent = '');
+      return true;
     }
   };
 
@@ -70,30 +75,43 @@
       email.classList.remove('is-invalid');
       email.classList.add('is-valid');
       feedback.textContent = '';
+      return true;
     } else {
       email.classList.remove('is-valid');
       email.classList.add('is-invalid');
       feedback.textContent = 'Invalid Email Address.';
+      return false;
     }
   };
 
   const submit_form = async () => {
     const form = document.querySelector('#registration-form');
+    console.log(form);
     const formdata = new FormData(form);
     const host = window.location.origin;
     const alert = document.querySelector('#alert-placeholder');
     const alert_content = document.createElement('div');
+    console.log(formdata);
+
+    const payload = {}
+    formdata.forEach((value, key) => {
+      payload[key] = value;
+    })
+
     try {
-      const response = await fetch(host.concat('api/register'), {
+      const response = await fetch(host.concat('/api/register'), {
         method: "POST",
-        body: JSON.stringify(formdata)
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload)
       });
       const response_json = await response.json();
       console.log(response_json);
       if (response_json.success === true) {
         alert_content.innerHTML = [
-          '<div class="alert alert-success alert-dismissible" role="alert" id="register-alert">' <
-          ' <div> User registered.Check your Mails for activation.</div> ',
+          '<div class="alert alert-success alert-dismissible" role="alert" id="register-alert">',
+          ' <div> User registered. Check your Mails for activation.</div> ',
           ' <button type="button" class="btn-close" data-bs-dismiss="alert" data-bs-target="#register-alert" aria-label="Close"></button>',
           '</div>'
         ].join('');
@@ -113,7 +131,20 @@
         '</div>'
       ].join('');
     }
-    alert.append(alert_content);
+    console.log(alert_content);
+    alert.replaceChildren(...[alert_content]);
+  }
+
+  const validateForm = () => {
+    const passwordValid = check_password();
+    const mailValid = check_email();
+    const btn = document.querySelector('#submit-button');
+
+    if (passwordValid && mailValid) {
+      btn.disabled = false;
+    } else {
+      btn.disabled = true;
+    }
   }
 
   const form = document.querySelector('#registration-form');
