@@ -81,16 +81,13 @@ async fn run(
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
-            .service(
-                web::scope("/")
-                    .route("/", web::get().to(index_page))
-                    .route("/healthcheck", web::get().to(health_check))
-                    .route("/register", web::get().to(register)),
-            )
-            .default_service(web::route().to(not_found))
+            .route("/", web::get().to(index_page))
+            .route("/healthcheck", web::get().to(health_check))
+            .route("/register", web::get().to(register))
+            .route("/notfound", web::route().to(not_found))
+            .route("/activate", web::route().to(activate_user))
             .service(web::scope("api").route("/register", web::post().to(register_user)))
             .app_data(web::JsonConfig::default().error_handler(json_deserialize_error_handler))
-            .service(activate_user)
             .service(Files::new("/static", "./static").prefer_utf8(true))
             .app_data(db_pool.clone())
             .app_data(pepper.clone())

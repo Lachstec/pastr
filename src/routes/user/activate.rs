@@ -1,20 +1,32 @@
 use crate::{entity::User, setup::AppBaseUrl};
 use actix_web::{
-    get,
     web::{self, Redirect},
+    Either, Responder,
 };
+use actix_web_lab::respond::Html;
+use askama::Template;
 use sqlx::PgPool;
 use uuid::Uuid;
 
+#[derive(Template)]
+#[template(path = "activated.html")]
+struct ActivationPage;
+
+#[derive(serde::Deserialize, Debug)]
+pub struct ActivationQuery {
+    pub user_id: Option<Uuid>,
+}
+
 #[tracing::instrument(name = "Account Activation Request", skip(pool))]
-#[get("/register/activate/{id}")]
 pub async fn activate_user(
-    user_id: web::Path<Uuid>,
+    user_id: web::Query<ActivationQuery>,
     pool: web::Data<PgPool>,
-    base_url: web::Data<AppBaseUrl>,
-) -> Redirect {
-    match User::activate(&user_id, &pool).await {
-        Ok(()) => Redirect::to(format!("{}/login?activated=true", base_url.0)).permanent(),
-        Err(_) => Redirect::to(format!("{}/login?activated=false", base_url.0)).permanent(),
+) -> Either<Html, Redirect> {
+    match user_id.0.user_id {
+        Some(id) => match User::activate(&id, &pool).await {
+            Ok(_) => Either::Left(Html(ActivationPage.render().unwrap())),
+            Err(_) => Either::Right(Redirect::to("/notfound")),
+        },
+        None => Either::Right(Redirect::to("/notfound")),
     }
 }
