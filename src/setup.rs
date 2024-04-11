@@ -1,5 +1,6 @@
 use crate::config::{Config, DatabaseConfig};
 use crate::log;
+use crate::routes::api::json_deserialize_error_handler;
 use crate::routes::api::user::register_user;
 use crate::routes::healthcheck::health_check;
 use crate::routes::index::index_page;
@@ -83,6 +84,7 @@ async fn run(
             .route("/healthcheck", web::get().to(health_check))
             .route("/register", web::get().to(register))
             .service(web::scope("api").route("/register", web::post().to(register_user)))
+            .app_data(web::JsonConfig::default().error_handler(json_deserialize_error_handler))
             .service(activate_user)
             .service(Files::new("/static", "./static").prefer_utf8(true))
             .app_data(db_pool.clone())

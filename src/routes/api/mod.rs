@@ -1,3 +1,5 @@
+use actix_web::{error, HttpRequest, HttpResponse};
+
 pub mod user;
 
 #[derive(Debug, Clone, serde::Serialize, PartialEq)]
@@ -48,6 +50,25 @@ impl<'a> ApiResponse<'a> {
             errors: Some(errors),
         }
     }
+}
+
+pub fn json_deserialize_error_handler(
+    err: error::JsonPayloadError,
+    _req: &HttpRequest,
+) -> error::Error {
+    use error::JsonPayloadError;
+
+    let response = match &err {
+        JsonPayloadError::ContentType => HttpResponse::UnsupportedMediaType().json(
+            ApiResponse::new(false, "invalid content-type. expected json"),
+        ),
+        JsonPayloadError::Deserialize(json_err) if json_err.is_data() => {
+            HttpResponse::UnprocessableEntity()
+                .json(ApiResponse::new(false, "malformed json payload"))
+        }
+        _ => HttpResponse::BadRequest().json(ApiResponse::new(false, "unexpected json body")),
+    };
+    error::InternalError::from_response(err, response).into()
 }
 
 #[cfg(test)]
