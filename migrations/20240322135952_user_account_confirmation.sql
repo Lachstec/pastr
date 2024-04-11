@@ -11,7 +11,7 @@ WHERE id IN (
         SELECT user_id
         FROM pastr.users_confirmations
         WHERE created_at < NOW() - INTERVAL '2 days'
-    )
+    );
 DELETE FROM pastr.users_confirmations
 WHERE created_at < NOW() - INTERVAL '2 days';
 RETURN NEW;
