@@ -4,6 +4,7 @@ use crate::routes::api::json_deserialize_error_handler;
 use crate::routes::api::user::register_user;
 use crate::routes::healthcheck::health_check;
 use crate::routes::index::index_page;
+use crate::routes::not_found;
 use crate::routes::user::{activate_user, register};
 use actix_files::Files;
 use actix_web::web::Data;
@@ -80,9 +81,13 @@ async fn run(
     let server = HttpServer::new(move || {
         App::new()
             .wrap(TracingLogger::default())
-            .route("/", web::get().to(index_page))
-            .route("/healthcheck", web::get().to(health_check))
-            .route("/register", web::get().to(register))
+            .service(
+                web::scope("/")
+                    .route("/", web::get().to(index_page))
+                    .route("/healthcheck", web::get().to(health_check))
+                    .route("/register", web::get().to(register)),
+            )
+            .default_service(web::route().to(not_found))
             .service(web::scope("api").route("/register", web::post().to(register_user)))
             .app_data(web::JsonConfig::default().error_handler(json_deserialize_error_handler))
             .service(activate_user)
