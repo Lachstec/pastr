@@ -1,7 +1,7 @@
-use crate::{entity::User, setup::AppBaseUrl};
+use crate::entity::User;
 use actix_web::{
     web::{self, Redirect},
-    Either, Responder,
+    Either,
 };
 use actix_web_lab::respond::Html;
 use askama::Template;
